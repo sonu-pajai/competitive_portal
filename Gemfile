@@ -21,7 +21,7 @@ gem "bcrypt", "~> 3.1.7"
 gem "devise"
 gem "razorpay"
 gem "aws-sdk-s3"
-gem "pagy", "~> 9.0"
+gem "pagy", "~> 43.4"
 gem "chartkick"
 gem "groupdate"
 
