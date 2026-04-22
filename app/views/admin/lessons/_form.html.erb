@@ -1,0 +1,44 @@
+<%= form_with(model: [:admin, @course, @lesson], class: "space-y-4") do |f| %>
+  <% if @lesson.errors.any? %>
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+      <% @lesson.errors.full_messages.each do |msg| %><p><%= msg %></p><% end %>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :title, class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_field :title, class: "w-full border rounded-lg px-4 py-2" %>
+  </div>
+
+  <div>
+    <%= f.label :description, class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_area :description, rows: 3, class: "w-full border rounded-lg px-4 py-2" %>
+  </div>
+
+  <div class="grid grid-cols-3 gap-4">
+    <div>
+      <%= f.label :position, class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.number_field :position, class: "w-full border rounded-lg px-4 py-2" %>
+    </div>
+    <div>
+      <%= f.label :max_views, class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.number_field :max_views, class: "w-full border rounded-lg px-4 py-2" %>
+    </div>
+    <div>
+      <%= f.label :duration_seconds, "Duration (sec)", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.number_field :duration_seconds, class: "w-full border rounded-lg px-4 py-2" %>
+    </div>
+  </div>
+
+  <div>
+    <%= f.label :video, "Upload Video (local dev)", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.file_field :video, accept: "video/*", class: "w-full border rounded-lg px-4 py-2" %>
+  </div>
+
+  <div>
+    <%= f.label :video_key, "S3 Video Key (production)", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_field :video_key, placeholder: "videos/course1/lesson1.mp4", class: "w-full border rounded-lg px-4 py-2" %>
+  </div>
+
+  <%= f.submit class: "bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 cursor-pointer" %>
+<% end %>

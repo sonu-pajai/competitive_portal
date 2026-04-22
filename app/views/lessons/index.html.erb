@@ -1,0 +1,21 @@
+<div class="max-w-4xl mx-auto">
+  <h1 class="text-2xl font-bold mb-2"><%= @course.title %></h1>
+  <p class="text-gray-500 mb-6"><%= @course.lessons.count %> lessons</p>
+
+  <div class="bg-white rounded-xl shadow-sm border divide-y">
+    <% @lessons.each_with_index do |lesson, i| %>
+      <div class="p-4 flex justify-between items-center">
+        <div>
+          <span class="text-gray-400 mr-3"><%= i + 1 %>.</span>
+          <%= link_to lesson.title, course_lesson_path(@course, lesson), class: "font-medium text-indigo-600 hover:text-indigo-800" %>
+        </div>
+        <div class="text-sm">
+          <% remaining = lesson.views_remaining_for(current_user) %>
+          <span class="<%= remaining.zero? ? 'text-red-500' : 'text-green-600' %>">
+            <%= remaining %>/<%= lesson.max_views %> views left
+          </span>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

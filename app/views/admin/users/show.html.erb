@@ -1,0 +1,88 @@
+<%= link_to "← Back to Users", admin_users_path, class: "text-indigo-600 mb-4 inline-block" %>
+
+<h1 class="text-2xl font-bold mb-6"><%= @user.name %></h1>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+  <div class="bg-white rounded-xl shadow-sm border p-4">
+    <p class="text-sm text-gray-500">Email</p>
+    <p class="font-medium"><%= @user.email %></p>
+  </div>
+  <div class="bg-white rounded-xl shadow-sm border p-4">
+    <p class="text-sm text-gray-500">Phone</p>
+    <p class="font-medium"><%= @user.phone || "N/A" %></p>
+  </div>
+  <div class="bg-white rounded-xl shadow-sm border p-4">
+    <p class="text-sm text-gray-500">Joined</p>
+    <p class="font-medium"><%= @user.created_at.strftime("%d %b %Y") %></p>
+  </div>
+</div>
+
+<h2 class="text-lg font-semibold mb-4">Enrollments</h2>
+<div class="bg-white rounded-xl shadow-sm border overflow-hidden mb-8">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="text-left px-4 py-3">Course</th>
+        <th class="text-left px-4 py-3">Status</th>
+        <th class="text-left px-4 py-3">Enrolled</th>
+        <th class="text-left px-4 py-3">Expires</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y">
+      <% @enrollments.each do |e| %>
+        <tr>
+          <td class="px-4 py-3"><%= e.course.title %></td>
+          <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs bg-green-100 text-green-700"><%= e.status %></span></td>
+          <td class="px-4 py-3"><%= e.enrolled_at&.strftime("%d %b %Y") %></td>
+          <td class="px-4 py-3"><%= e.expires_at&.strftime("%d %b %Y") %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-lg font-semibold mb-4">Payments</h2>
+<div class="bg-white rounded-xl shadow-sm border overflow-hidden mb-8">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="text-left px-4 py-3">Amount</th>
+        <th class="text-left px-4 py-3">Status</th>
+        <th class="text-left px-4 py-3">Razorpay ID</th>
+        <th class="text-left px-4 py-3">Date</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y">
+      <% @payments.each do |p| %>
+        <tr>
+          <td class="px-4 py-3">₹<%= number_with_delimiter(p.amount) %></td>
+          <td class="px-4 py-3"><%= p.status %></td>
+          <td class="px-4 py-3 text-xs text-gray-400"><%= p.razorpay_payment_id %></td>
+          <td class="px-4 py-3"><%= p.created_at.strftime("%d %b %Y") %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-lg font-semibold mb-4">Device Sessions</h2>
+<div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="text-left px-4 py-3">Device</th>
+        <th class="text-left px-4 py-3">IP</th>
+        <th class="text-left px-4 py-3">Last Active</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y">
+      <% @device_sessions.each do |ds| %>
+        <tr>
+          <td class="px-4 py-3"><%= ds.device_name.to_s.truncate(50) %></td>
+          <td class="px-4 py-3"><%= ds.ip_address %></td>
+          <td class="px-4 py-3"><%= ds.last_active_at&.strftime("%d %b %Y %H:%M") %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

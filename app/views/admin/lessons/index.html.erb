@@ -1,0 +1,43 @@
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <h1 class="text-2xl font-bold">Lessons: <%= @course.title %></h1>
+    <%= link_to "← Back to Courses", admin_courses_path, class: "text-indigo-600 text-sm" %>
+  </div>
+  <%= link_to "Add Lesson", new_admin_course_lesson_path(@course), class: "bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700" %>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="text-left px-4 py-3">#</th>
+        <th class="text-left px-4 py-3">Title</th>
+        <th class="text-left px-4 py-3">Max Views</th>
+        <th class="text-left px-4 py-3">Video</th>
+        <th class="text-left px-4 py-3">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y">
+      <% @lessons.each do |lesson| %>
+        <tr>
+          <td class="px-4 py-3"><%= lesson.position %></td>
+          <td class="px-4 py-3 font-medium"><%= lesson.title %></td>
+          <td class="px-4 py-3"><%= lesson.max_views %></td>
+          <td class="px-4 py-3">
+            <% if lesson.video.attached? %>
+              <span class="text-green-600">✓ Uploaded</span>
+            <% elsif lesson.video_key.present? %>
+              <span class="text-blue-600">S3: <%= lesson.video_key %></span>
+            <% else %>
+              <span class="text-gray-400">No video</span>
+            <% end %>
+          </td>
+          <td class="px-4 py-3 space-x-2">
+            <%= link_to "Edit", edit_admin_course_lesson_path(@course, lesson), class: "text-indigo-600" %>
+            <%= button_to "Delete", admin_course_lesson_path(@course, lesson), method: :delete, class: "text-red-500", data: { turbo_confirm: "Delete?" } %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

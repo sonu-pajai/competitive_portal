@@ -1,0 +1,111 @@
+<h1 class="text-2xl font-bold mb-6">Admin Dashboard</h1>
+
+<!-- Stats Cards - All Clickable -->
+<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+  <%= link_to admin_users_path, class: "bg-white rounded-xl shadow-sm border p-5 hover:shadow-md hover:border-indigo-300 transition block" do %>
+    <p class="text-xs text-gray-500">Total Students</p>
+    <p class="text-2xl font-bold text-indigo-600"><%= @total_users %></p>
+    <p class="text-xs text-indigo-400 mt-1">View all →</p>
+  <% end %>
+
+  <%= link_to admin_users_path(filter: "not_purchased"), class: "bg-white rounded-xl shadow-sm border p-5 hover:shadow-md hover:border-red-300 transition block" do %>
+    <p class="text-xs text-gray-500">Not Purchased</p>
+    <p class="text-2xl font-bold text-red-500"><%= @not_purchased_count %></p>
+    <p class="text-xs text-red-400 mt-1">View all →</p>
+  <% end %>
+
+  <%= link_to admin_courses_path, class: "bg-white rounded-xl shadow-sm border p-5 hover:shadow-md hover:border-green-300 transition block" do %>
+    <p class="text-xs text-gray-500">Total Courses</p>
+    <p class="text-2xl font-bold text-green-600"><%= @total_courses %></p>
+    <p class="text-xs text-green-400 mt-1">Manage →</p>
+  <% end %>
+
+  <%= link_to admin_users_path(filter: "purchased"), class: "bg-white rounded-xl shadow-sm border p-5 hover:shadow-md hover:border-blue-300 transition block" do %>
+    <p class="text-xs text-gray-500">Active Enrollments</p>
+    <p class="text-2xl font-bold text-blue-600"><%= @total_enrollments %></p>
+    <p class="text-xs text-blue-400 mt-1">View enrolled →</p>
+  <% end %>
+
+  <%= link_to admin_payments_path, class: "bg-white rounded-xl shadow-sm border p-5 hover:shadow-md hover:border-emerald-300 transition block" do %>
+    <p class="text-xs text-gray-500">Monthly Revenue</p>
+    <p class="text-2xl font-bold text-emerald-600">₹<%= number_with_delimiter(@monthly_revenue) %></p>
+    <p class="text-xs text-emerald-400 mt-1">View payments →</p>
+  <% end %>
+
+  <%= link_to admin_payments_path, class: "bg-white rounded-xl shadow-sm border p-5 hover:shadow-md hover:border-emerald-300 transition block" do %>
+    <p class="text-xs text-gray-500">Total Revenue</p>
+    <p class="text-2xl font-bold text-emerald-700">₹<%= number_with_delimiter(@total_revenue) %></p>
+    <p class="text-xs text-emerald-400 mt-1">View payments →</p>
+  <% end %>
+</div>
+
+<!-- Charts Row 1 -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+  <div class="bg-white rounded-xl shadow-sm border p-6">
+    <h3 class="font-semibold mb-4">Enrollments (30 days)</h3>
+    <%= line_chart @enrollments_by_day, colors: ["#4F46E5"] %>
+  </div>
+  <div class="bg-white rounded-xl shadow-sm border p-6">
+    <h3 class="font-semibold mb-4">Revenue (30 days)</h3>
+    <%= line_chart @revenue_by_day, prefix: "₹", colors: ["#059669"] %>
+  </div>
+</div>
+
+<!-- Charts Row 2 -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+  <div class="bg-white rounded-xl shadow-sm border p-6">
+    <h3 class="font-semibold mb-4">Revenue by Course</h3>
+    <%= pie_chart @revenue_by_course, prefix: "₹", donut: true, colors: ["#4F46E5", "#059669", "#D97706", "#DC2626", "#7C3AED"] %>
+  </div>
+  <div class="bg-white rounded-xl shadow-sm border p-6">
+    <h3 class="font-semibold mb-4">Revenue by Course (Bar)</h3>
+    <%= bar_chart @revenue_by_course, prefix: "₹", colors: ["#4F46E5"] %>
+  </div>
+</div>
+
+<!-- Recent Tables -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+    <div class="flex justify-between items-center p-4 border-b">
+      <h3 class="font-semibold">Recent Payments</h3>
+      <%= link_to "View all →", admin_payments_path, class: "text-xs text-indigo-600 hover:text-indigo-800" %>
+    </div>
+    <table class="w-full text-sm">
+      <tbody class="divide-y">
+        <% @recent_payments.each do |p| %>
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-3"><%= link_to p.user.name, admin_user_path(p.user), class: "text-indigo-600 hover:text-indigo-800" %></td>
+            <td class="px-4 py-3 text-gray-500"><%= p.enrollment.course.title.truncate(25) %></td>
+            <td class="px-4 py-3 font-medium">₹<%= number_with_delimiter(p.amount) %></td>
+            <td class="px-4 py-3 text-gray-400"><%= p.created_at.strftime("%d %b") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+    <div class="flex justify-between items-center p-4 border-b">
+      <h3 class="font-semibold">Recent Users</h3>
+      <%= link_to "View all →", admin_users_path, class: "text-xs text-indigo-600 hover:text-indigo-800" %>
+    </div>
+    <table class="w-full text-sm">
+      <tbody class="divide-y">
+        <% @recent_users.each do |u| %>
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-3"><%= link_to u.name, admin_user_path(u), class: "text-indigo-600 hover:text-indigo-800" %></td>
+            <td class="px-4 py-3"><%= u.email %></td>
+            <td class="px-4 py-3">
+              <% if u.enrollments.active.any? %>
+                <span class="px-2 py-1 rounded text-xs bg-green-100 text-green-700">Enrolled</span>
+              <% else %>
+                <span class="px-2 py-1 rounded text-xs bg-red-100 text-red-600">No Purchase</span>
+              <% end %>
+            </td>
+            <td class="px-4 py-3 text-gray-400"><%= u.created_at.strftime("%d %b") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

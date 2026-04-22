@@ -1,0 +1,22 @@
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-2xl font-bold mb-2">Your Devices</h1>
+  <p class="text-gray-500 mb-6">Maximum <%= User::MAX_DEVICES %> devices allowed</p>
+
+  <div class="bg-white rounded-xl shadow-sm border divide-y">
+    <% @device_sessions.each do |ds| %>
+      <div class="p-4 flex justify-between items-center">
+        <div>
+          <p class="font-medium"><%= ds.device_name.to_s.truncate(60) || "Unknown Device" %></p>
+          <p class="text-sm text-gray-400">IP: <%= ds.ip_address %> · Last active: <%= time_ago_in_words(ds.last_active_at) %> ago</p>
+        </div>
+        <%= button_to "Remove", device_session_path(ds), method: :delete,
+            class: "text-red-500 hover:text-red-700 text-sm",
+            data: { turbo_confirm: "Remove this device?" } %>
+      </div>
+    <% end %>
+
+    <% if @device_sessions.empty? %>
+      <div class="p-8 text-center text-gray-400">No active device sessions</div>
+    <% end %>
+  </div>
+</div>

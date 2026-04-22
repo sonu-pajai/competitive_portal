@@ -1,0 +1,154 @@
+<div class="max-w-5xl mx-auto">
+  <%= link_to "← Back", course_lesson_path(@course, @lesson), class: "text-indigo-600 hover:text-indigo-800 mb-4 inline-block" %>
+
+  <div class="relative bg-black rounded-xl overflow-hidden mb-4" id="video-container">
+    <% if @video_url %>
+      <video id="secure-video" controls controlsList="nodownload noremoteplayback"
+             disablePictureInPicture disableRemotePlayback
+             oncontextmenu="return false;" class="w-full" style="max-height: 70vh;">
+        <source src="<%= @video_url %>" type="video/mp4">
+        Your browser does not support video playback.
+      </video>
+
+      <!-- Forensic watermark canvas -->
+      <canvas id="watermark-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-10"></canvas>
+    <% else %>
+      <div class="text-white text-center py-20">Video not available</div>
+    <% end %>
+  </div>
+
+  <div class="flex justify-between items-center">
+    <h2 class="text-xl font-bold"><%= @lesson.title %></h2>
+    <span id="views-badge" class="text-sm px-3 py-1 rounded-full <%= @views_remaining.zero? ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700' %>">
+      <span id="views-count"><%= @views_remaining %></span> views remaining
+    </span>
+  </div>
+
+  <p class="text-xs text-gray-400 mt-2">This video is licensed to <%= current_user.email %>. Unauthorized distribution is prohibited.</p>
+</div>
+
+<style>
+  #video-container { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  @keyframes drift {
+    0%   { transform: translate(0, 0) rotate(-30deg); }
+    25%  { transform: translate(30px, -20px) rotate(-25deg); }
+    50%  { transform: translate(-20px, 30px) rotate(-35deg); }
+    75%  { transform: translate(40px, 10px) rotate(-28deg); }
+    100% { transform: translate(0, 0) rotate(-30deg); }
+  }
+</style>
+
+<script>
+(function() {
+  const video = document.getElementById('secure-video');
+  const canvas = document.getElementById('watermark-canvas');
+  if (!video) return;
+
+  // === View counting on first play ===
+  let viewRecorded = false;
+
+  video.addEventListener('play', function() {
+    if (viewRecorded) return;
+    viewRecorded = true;
+    recordView();
+  });
+
+  // If no video source, record view on page load
+  video.addEventListener('error', function() {
+    if (!viewRecorded) { viewRecorded = true; recordView(); }
+  });
+
+  // Also record if video has no source at all
+  if (!video.querySelector('source') || !video.querySelector('source').src) {
+    viewRecorded = true;
+    recordView();
+  }
+
+  function recordView() {
+    fetch('<%= record_view_course_lesson_path(@course, @lesson) %>', {
+      method: 'POST',
+      headers: {
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+      if (data.error) {
+        video.pause();
+        video.src = '';
+        alert('View limit reached for this lesson.');
+        window.location.href = '<%= course_lesson_path(@course, @lesson) %>';
+      } else {
+        var badge = document.getElementById('views-count');
+        if (badge) badge.textContent = data.views_remaining;
+        var container = document.getElementById('views-badge');
+        if (data.views_remaining === 0) {
+          container.className = 'text-sm px-3 py-1 rounded-full bg-red-100 text-red-700';
+        }
+      }
+    });
+  }
+
+  // === Forensic watermark ===
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    const userEmail = '<%= current_user.email %>';
+    const userId = '<%= current_user.id %>';
+
+    function resizeCanvas() { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    let frame = 0;
+    function drawWatermark() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const positions = [
+        { x: 0.15, y: 0.2 }, { x: 0.55, y: 0.45 }, { x: 0.25, y: 0.7 },
+        { x: 0.7, y: 0.15 }, { x: 0.45, y: 0.85 }, { x: 0.8, y: 0.6 }
+      ];
+      frame++;
+      const d1 = Math.sin(frame * 0.005) * 30;
+      const d2 = Math.cos(frame * 0.003) * 20;
+
+      positions.forEach(function(pos, i) {
+        const x = pos.x * canvas.width + (i % 2 === 0 ? d1 : d2);
+        const y = pos.y * canvas.height + (i % 2 === 0 ? d2 : d1);
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(-0.35 + Math.sin(frame * 0.002 + i) * 0.05);
+        ctx.font = '14px monospace';
+        ctx.fillStyle = 'rgba(255,255,255,0.08)';
+        ctx.fillText(userEmail + ' | ID:' + userId, 0, 0);
+        ctx.fillText(new Date().toLocaleString('en-IN'), 0, 18);
+        if (i % 3 === 0) {
+          ctx.fillStyle = 'rgba(255,255,255,0.12)';
+          ctx.font = '16px monospace';
+          ctx.fillText(userEmail, 0, -15);
+        }
+        ctx.restore();
+      });
+      requestAnimationFrame(drawWatermark);
+    }
+    drawWatermark();
+  }
+
+  // === Screen recording deterrents ===
+  document.addEventListener('visibilitychange', function() { if (document.hidden) video.pause(); });
+  window.addEventListener('blur', function() { video.pause(); });
+  video.addEventListener('enterpictureinpicture', function() {
+    video.pause(); document.exitPictureInPicture().catch(function(){});
+  });
+  if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+    const orig = navigator.mediaDevices.getDisplayMedia;
+    navigator.mediaDevices.getDisplayMedia = function() { video.pause(); return orig.apply(this, arguments); };
+  }
+  document.getElementById('video-container').addEventListener('contextmenu', function(e) { e.preventDefault(); });
+  video.addEventListener('dragstart', function(e) { e.preventDefault(); });
+  document.addEventListener('keydown', function(e) {
+    if (((e.metaKey||e.ctrlKey) && e.shiftKey && '345sS'.includes(e.key)) || e.key === 'PrintScreen') {
+      e.preventDefault(); video.pause();
+    }
+  });
+})();
+</script>

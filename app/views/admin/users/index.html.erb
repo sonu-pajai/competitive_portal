@@ -1,0 +1,52 @@
+<h1 class="text-2xl font-bold mb-6">Users</h1>
+
+<!-- Filters -->
+<div class="flex gap-2 mb-4">
+  <%= link_to "All", admin_users_path(q: @q), class: "px-4 py-2 rounded-lg #{@filter.blank? ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'}" %>
+  <%= link_to "Purchased", admin_users_path(filter: "purchased", q: @q), class: "px-4 py-2 rounded-lg #{@filter == 'purchased' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'}" %>
+  <%= link_to "Not Purchased", admin_users_path(filter: "not_purchased", q: @q), class: "px-4 py-2 rounded-lg #{@filter == 'not_purchased' ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700'}" %>
+</div>
+
+<%= form_tag admin_users_path, method: :get, class: "mb-6 flex gap-4" do %>
+  <%= hidden_field_tag :filter, @filter %>
+  <%= text_field_tag :q, @q, placeholder: "Search by name or email...", class: "flex-1 border rounded-lg px-4 py-2" %>
+  <%= submit_tag "Search", class: "bg-indigo-600 text-white px-6 py-2 rounded-lg cursor-pointer" %>
+<% end %>
+
+<div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="text-left px-4 py-3">Name</th>
+        <th class="text-left px-4 py-3">Email</th>
+        <th class="text-left px-4 py-3">Phone</th>
+        <th class="text-left px-4 py-3">Enrollments</th>
+        <th class="text-left px-4 py-3">Total Paid</th>
+        <th class="text-left px-4 py-3">Joined</th>
+        <th class="text-left px-4 py-3">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y">
+      <% @users.each do |user| %>
+        <tr>
+          <td class="px-4 py-3 font-medium"><%= user.name %></td>
+          <td class="px-4 py-3"><%= user.email %></td>
+          <td class="px-4 py-3"><%= user.phone %></td>
+          <td class="px-4 py-3">
+            <% count = user.enrollments.active.count %>
+            <span class="px-2 py-1 rounded text-xs <%= count > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' %>">
+              <%= count %>
+            </span>
+          </td>
+          <td class="px-4 py-3">₹<%= number_with_delimiter(user.payments.paid.sum(:amount)) %></td>
+          <td class="px-4 py-3"><%= user.created_at.strftime("%d %b %Y") %></td>
+          <td class="px-4 py-3"><%= link_to "View", admin_user_path(user), class: "text-indigo-600" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="mt-4">
+  <%== pagy_nav(@pagy) if @pagy.pages > 1 %>
+</div>
